@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../utils/api';
+import Analytics from './analytics/src/components/Analytics';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();

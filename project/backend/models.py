@@ -11,7 +11,9 @@ class User(SQLModel, table=True):
     bio: Optional[str] = None
     avatar: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    status: Optional[str] = None
+    status: Optional[str] = "Active"  # 'Active' or 'Inactive'
+    role: str = Field(default="Analyst")  # 'Admin', 'Sub-Admin', 'Analyst'
+    last_login: Optional[datetime] = None
     region: Optional[str] = None
     segment: Optional[str] = None
     phase: Optional[str] = None
@@ -22,7 +24,7 @@ class User(SQLModel, table=True):
 
 class UserAnalytics(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    number: str = Field(index=True, unique=True)
+    number: int = Field(index=True, unique=True)
     name: str
     email: str
     status: str

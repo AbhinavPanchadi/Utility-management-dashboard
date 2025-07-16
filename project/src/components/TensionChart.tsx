@@ -9,12 +9,31 @@ const data = [
   { name: 'TYPE E (1000V)', value: 7, color: '#8B5CF6' },
 ];
 
+const cardStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: '28px 24px',
+  background: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(251,191,36,0.10) 100%)',
+  boxShadow: '0 8px 32px 0 rgba(59,130,246,0.10)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  border: '1.5px solid rgba(59,130,246,0.10)',
+  margin: 0,
+  overflow: 'hidden',
+};
+
+const legendStyle: React.CSSProperties = {
+  marginTop: 18,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+};
+
 const TensionChart = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-blue-600 mb-4">Power Distribution</h3>
-      <div className="h-64">
+    <div style={cardStyle}>
+      <h3 style={{ fontSize: 20, fontWeight: 700, color: '#2563eb', marginBottom: 18 }}>Power Distribution</h3>
+      <div style={{ height: 256 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -42,14 +61,11 @@ const TensionChart = () => {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 space-y-2">
+      <div style={legendStyle}>
         {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2 text-sm">
-            <div 
-              className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: item.color }}
-            ></div>
-            <span className="text-gray-600">{item.name}</span>
+          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+            <div style={{ width: 14, height: 14, borderRadius: '50%', background: item.color }}></div>
+            <span style={{ color: '#334155' }}>{item.name}</span>
           </div>
         ))}
       </div>

@@ -13,12 +13,31 @@ const data = [
   { name: 'Commercial Zone', value: 2, color: '#EC4899' },
 ];
 
+const cardStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: '28px 24px',
+  background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(59,130,246,0.10) 100%)',
+  boxShadow: '0 8px 32px 0 rgba(16,185,129,0.10)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  border: '1.5px solid rgba(16,185,129,0.10)',
+  margin: 0,
+  overflow: 'hidden',
+};
+
+const legendStyle: React.CSSProperties = {
+  marginTop: 18,
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  gap: 8,
+};
+
 const RegionChart = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-teal-600 mb-4">🌍 Active Users by Region</h3>
-      <div className="h-64">
+    <div style={cardStyle}>
+      <h3 style={{ fontSize: 20, fontWeight: 700, color: '#14b8a6', marginBottom: 18 }}>🌍 Active Users by Region</h3>
+      <div style={{ height: 256 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -46,14 +65,11 @@ const RegionChart = () => {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div style={legendStyle}>
         {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2 text-xs">
-            <div 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: item.color }}
-            ></div>
-            <span className="text-gray-600">{item.name}</span>
+          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }}></div>
+            <span style={{ color: '#334155' }}>{item.name}</span>
           </div>
         ))}
       </div>

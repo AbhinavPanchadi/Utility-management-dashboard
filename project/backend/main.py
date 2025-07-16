@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session, select
-from typing import Optional
+from typing import Optional, List
 from jose import JWTError, jwt
 from datetime import timedelta
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
+from fastapi import APIRouter
 
 from database import create_db_and_tables, get_session
 from models import User, UserAnalytics
@@ -115,4 +116,89 @@ def get_user_by_number(number: str, session: Session = Depends(get_session)):
         "payment_history": json.loads(analytics.payment_history) if analytics.payment_history else [],
         "alert_history": json.loads(analytics.alert_history) if analytics.alert_history else [],
         "recent_activity": json.loads(analytics.recent_activity) if analytics.recent_activity else [],
-    }) 
+    })
+
+admin_router = APIRouter(prefix="/admin", tags=["admin"])
+
+@admin_router.get("/", response_model=List[UserRead])
+def list_admins(session: Session = Depends(get_session), role: Optional[str] = None, search: Optional[str] = None):
+    query = select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]))
+    if role:
+        query = query.where(User.role == role)
+    if search:
+        query = query.where((User.username.contains(search)) | (User.email.contains(search)))
+    return session.exec(query).all()
+
+@admin_router.post("/", response_model=UserRead)
+def create_admin(user: UserCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can create admins")
+    db_user = session.exec(select(User).where((User.username == user.username) | (User.email == user.email))).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username or email already registered")
+    hashed_password = get_password_hash(user.password)
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        password_hash=hashed_password,
+        full_name=user.full_name,
+        bio=user.bio,
+        avatar=user.avatar,
+        role=user.role,
+        status=user.status
+    )
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+    return new_user
+
+@admin_router.put("/{admin_id}", response_model=UserRead)
+def update_admin(admin_id: int, update: UserCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can update admins")
+    admin = session.get(User, admin_id)
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    admin.full_name = update.full_name
+    admin.bio = update.bio
+    admin.avatar = update.avatar
+    admin.role = update.role
+    admin.status = update.status
+    session.add(admin)
+    session.commit()
+    session.refresh(admin)
+    return admin
+
+@admin_router.delete("/{admin_id}")
+def delete_admin(admin_id: int, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can delete admins")
+    admin = session.get(User, admin_id)
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    session.delete(admin)
+    session.commit()
+    return {"msg": "Admin deleted"}
+
+@admin_router.patch("/{admin_id}/status")
+def toggle_admin_status(admin_id: int, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    if current_user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Only Admins can toggle status")
+    admin = session.get(User, admin_id)
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    admin.status = "Inactive" if admin.status == "Active" else "Active"
+    session.add(admin)
+    session.commit()
+    session.refresh(admin)
+    return admin
+
+@admin_router.get("/metrics")
+def admin_metrics(session: Session = Depends(get_session)):
+    total = len(session.exec(select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]))).all())
+    active = len(session.exec(select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]) & (User.status == "Active"))).all())
+    sub_admins = len(session.exec(select(User).where(User.role == "Sub-Admin")).all())
+    analysts = len(session.exec(select(User).where(User.role == "Analyst")).all())
+    return {"totalAdmins": total, "activeAdmins": active, "subAdmins": sub_admins, "analysts": analysts}
+
+app.include_router(admin_router) 

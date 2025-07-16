@@ -7,6 +7,8 @@ import UsersPage from './components/UsersPage';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import AdminManagement from './admin/src/components/AdminManagement';
+import Analytics from './analytics/src/components/Analytics';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,9 +24,9 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <div className="flex">
+      <div style={{ display: 'flex', alignItems: 'stretch', minHeight: '100vh' }}>
         <Sidebar />
-        <main className="flex-1">{children}</main>
+        <main style={{ flex: 1, minWidth: 0 }}>{children}</main>
       </div>
     </>
   );
@@ -40,6 +42,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
+            <Route path="/admin" element={<PrivateRoute><AdminManagement /></PrivateRoute>} />
+            <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </Layout>

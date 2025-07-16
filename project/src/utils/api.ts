@@ -157,3 +157,42 @@ export const readingAPI = {
     return apiRequest('/readings/history');
   },
 };
+
+// Admin API calls
+export const adminAPI = {
+  getAll: async (role?: string, search?: string) => {
+    let query = '';
+    if (role || search) {
+      const params = new URLSearchParams();
+      if (role) params.append('role', role);
+      if (search) params.append('search', search);
+      query = `?${params.toString()}`;
+    }
+    return apiRequest(`/admin/${query}`, {}, true);
+  },
+  create: async (adminData: any) => {
+    return apiRequest('/admin/', {
+      method: 'POST',
+      body: JSON.stringify(adminData),
+    }, true);
+  },
+  update: async (id: string, adminData: any) => {
+    return apiRequest(`/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(adminData),
+    }, true);
+  },
+  delete: async (id: string) => {
+    return apiRequest(`/admin/${id}`, {
+      method: 'DELETE',
+    }, true);
+  },
+  toggleStatus: async (id: string) => {
+    return apiRequest(`/admin/${id}/status`, {
+      method: 'PATCH',
+    }, true);
+  },
+  getMetrics: async () => {
+    return apiRequest('/admin/metrics', {}, true);
+  },
+};

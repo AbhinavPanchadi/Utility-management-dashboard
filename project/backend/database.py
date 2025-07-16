@@ -45,7 +45,7 @@ def create_fake_analytics():
             return  # Already has data
         fake_analytics = [
             UserAnalytics(
-                number=f"user{i}",
+                number=i,
                 name=f"User {i}",
                 email=f"user{i}@example.com",
                 status=random.choice(["active", "inactive"]),

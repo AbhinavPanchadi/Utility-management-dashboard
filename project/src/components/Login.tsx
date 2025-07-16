@@ -40,7 +40,7 @@ const Login: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white border-4 border-gray-800 shadow-lg p-8 rounded w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">
-          <span className="text-green-400">Vidhya</span>
+          <span className="text-green-400">Vidya</span>
           <span className="text-blue-400">yug</span>
         </h2>
         {error && <div className="mb-4 text-red-500">{error}</div>}

@@ -1,12 +1,73 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
+const headerStyle: React.CSSProperties = {
+  background: '#18181b',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+  padding: '16px 32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  position: 'relative',
+  minHeight: 64,
+  zIndex: 100,
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: 28,
+  fontWeight: 700,
+  letterSpacing: 1,
+  color: '#22d3ee',
+  textAlign: 'center',
+  flex: 1,
+  pointerEvents: 'none',
+  userSelect: 'none',
+};
+
+const userButtonStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  background: '#2563eb',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 8,
+  padding: '8px 16px',
+  cursor: 'pointer',
+  fontWeight: 500,
+  fontSize: 16,
+  outline: 'none',
+  gap: 8,
+};
+
+const dropdownStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: 0,
+  marginTop: 8,
+  width: 160,
+  background: '#fff',
+  borderRadius: 8,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+  zIndex: 200,
+  overflow: 'hidden',
+};
+
+const dropdownItemStyle: React.CSSProperties = {
+  padding: '12px 20px',
+  color: '#18181b',
+  background: 'none',
+  border: 'none',
+  width: '100%',
+  textAlign: 'left',
+  fontSize: 15,
+  cursor: 'pointer',
+  transition: 'background 0.2s',
+};
+
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -23,35 +84,34 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-gray-800 shadow p-4 flex items-center justify-between relative">
-      <div className="absolute left-0 right-0 flex justify-center pointer-events-none">
-        <h1 className="text-2xl font-bold animate-bounce select-none">
-          <span className="text-green-400">Vidhya</span>
-          <span className="text-blue-400">yug</span>
-        </h1>
+    <header style={headerStyle}>
+      <div style={titleStyle}>
+        <span style={{ color: '#4ade80' }}>Vidya</span>
+        <span style={{ color: '#60a5fa', marginLeft: 2 }}>yug</span>
       </div>
       {user && (
-        <div className="relative ml-auto" ref={dropdownRef}>
+        <div style={{ position: 'relative', marginLeft: 'auto' }} ref={dropdownRef}>
           <button
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded focus:outline-none"
+            style={userButtonStyle}
             onClick={() => setDropdownOpen((open) => !open)}
+            aria-haspopup="true"
+            aria-expanded={dropdownOpen}
           >
-            <span>{user.username}</span>
-            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <span style={{ fontWeight: 600 }}>{user.username}</span>
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-10">
-              <a
-                href="#"
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                onClick={e => { e.preventDefault(); setDropdownOpen(false); }}
+            <div style={dropdownStyle}>
+              <button
+                style={dropdownItemStyle}
+                onClick={() => setDropdownOpen(false)}
               >
                 Profile
-              </a>
+              </button>
               <button
-                className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                style={{ ...dropdownItemStyle, color: '#ef4444' }}
                 onClick={handleLogout}
               >
                 Logout

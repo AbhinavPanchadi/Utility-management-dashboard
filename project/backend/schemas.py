@@ -9,6 +9,8 @@ class UserCreate(BaseModel):
     full_name: Optional[str] = None
     bio: Optional[str] = None
     avatar: Optional[str] = None
+    role: str = "Analyst"
+    status: Optional[str] = "Active"
 
 class UserRead(BaseModel):
     id: int
@@ -18,6 +20,9 @@ class UserRead(BaseModel):
     bio: Optional[str] = None
     avatar: Optional[str] = None
     created_at: datetime
+    status: Optional[str] = None
+    role: str
+    last_login: Optional[datetime] = None
 
     class Config:
         orm_mode = True
