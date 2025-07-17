@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -19,14 +19,15 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const hideLayout = !isAuthenticated || ['/login', '/register'].includes(location.pathname);
   if (hideLayout) return <>{children}</>;
   return (
     <>
-      <Header />
-      <div style={{ display: 'flex', alignItems: 'stretch', minHeight: '100vh' }}>
-        <Sidebar />
-        <main style={{ flex: 1, minWidth: 0 }}>{children}</main>
+      <Header onMenuClick={() => setSidebarOpen((open) => !open)} />
+      <div className="flex flex-row items-stretch">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className="flex-1 min-w-0 bg-gray-50 p-2 md:p-6 min-h-screen">{children}</main>
       </div>
     </>
   );

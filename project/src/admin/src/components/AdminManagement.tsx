@@ -198,14 +198,14 @@ const AdminManagement: React.FC = () => {
     icon: React.ElementType; 
     gradient: string; 
   }) => (
-    <div className={`${gradient} rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
+    <div className={`${gradient} rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-white/80 text-sm font-medium mb-1">{title}</p>
-          <p className="text-3xl font-bold">{value}</p>
+          <p className="text-white/80 text-xs md:text-sm font-medium mb-1">{title}</p>
+          <p className="text-2xl md:text-3xl font-bold">{value}</p>
         </div>
-        <div className="bg-white/20 rounded-full p-3">
-          <Icon className="w-8 h-8" />
+        <div className="bg-white/20 rounded-full p-2 md:p-3">
+          <Icon className="w-6 h-6 md:w-8 md:h-8" />
         </div>
       </div>
     </div>
@@ -213,19 +213,19 @@ const AdminManagement: React.FC = () => {
 
   const LoadingState = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-gray-200 rounded-2xl p-6 animate-pulse">
-            <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-            <div className="h-8 bg-gray-300 rounded w-1/3"></div>
+          <div key={i} className="bg-gray-200 rounded-2xl p-4 md:p-6 animate-pulse">
+            <div className="h-3 md:h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+            <div className="h-6 md:h-8 bg-gray-300 rounded w-1/3"></div>
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-2xl p-6 shadow-lg">
+      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
         <div className="h-4 bg-gray-300 rounded w-1/4 mb-4"></div>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+            <div key={i} className="h-12 md:h-16 bg-gray-200 rounded animate-pulse"></div>
           ))}
         </div>
       </div>
@@ -233,15 +233,15 @@ const AdminManagement: React.FC = () => {
   );
 
   const EmptyState = () => (
-    <div className="text-center py-12">
-      <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-        <Users className="w-8 h-8 text-gray-400" />
+    <div className="text-center py-8 md:py-12">
+      <div className="bg-gray-100 rounded-full p-3 md:p-4 w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 flex items-center justify-center">
+        <Users className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">No admins found</h3>
-      <p className="text-gray-500 mb-6">Get started by adding your first admin user.</p>
+      <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">No admins found</h3>
+      <p className="text-sm md:text-base text-gray-500 mb-4 md:mb-6">Get started by adding your first admin user.</p>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-colors text-sm md:text-base"
       >
         Add Admin
       </button>
@@ -251,11 +251,11 @@ const AdminManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Management</h1>
-          <p className="text-gray-600">Manage your admin users and their permissions</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Admin Management</h1>
+          <p className="text-sm md:text-base text-gray-600">Manage your admin users and their permissions</p>
         </div>
 
         {loading ? (
@@ -263,7 +263,7 @@ const AdminManagement: React.FC = () => {
         ) : (
           <>
             {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
               <MetricCard
                 title="Total Admins"
                 value={metrics.totalAdmins}
@@ -292,23 +292,23 @@ const AdminManagement: React.FC = () => {
 
             {/* Table Header */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                  <div className="flex items-center space-x-4">
+              <div className="p-4 md:p-6 border-b border-gray-200">
+                <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
                       <input
                         type="text"
                         placeholder="Search admins..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="pl-10 pr-4 py-2 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full text-sm md:text-base"
                       />
                     </div>
                     <select
                       value={filterRole}
                       onChange={(e) => setFilterRole(e.target.value)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                     >
                       <option value="All">All Roles</option>
                       <option value="Admin">Admin</option>
@@ -318,9 +318,9 @@ const AdminManagement: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setShowModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-sm md:text-base"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" />
                     <span>Add Admin</span>
                   </button>
                 </div>
@@ -331,33 +331,33 @@ const AdminManagement: React.FC = () => {
                 <EmptyState />
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[800px]">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                        <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredAdmins.map((admin) => (
+                      {(filteredAdmins || []).map((admin) => (
                         <tr key={admin.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                              <div className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10">
+                                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs md:text-sm">
                                   {admin.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                               </div>
-                              <div className="ml-4">
+                              <div className="ml-3 md:ml-4">
                                 <div className="text-sm font-medium text-gray-900">{admin.name}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               admin.role === 'Admin' 
                                 ? 'bg-red-100 text-red-800' 
@@ -368,10 +368,11 @@ const AdminManagement: React.FC = () => {
                               {admin.role}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {admin.email}
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span className="hidden sm:inline">{admin.email}</span>
+                            <span className="sm:hidden text-xs">{admin.email && admin.email.length > 20 ? admin.email.substring(0, 20) + '...' : admin.email}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                             <button
                               onClick={() => toggleStatus(admin.id)}
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full transition-colors ${
@@ -383,20 +384,21 @@ const AdminManagement: React.FC = () => {
                               {admin.status}
                             </button>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {admin.lastLogin}
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span className="hidden md:inline">{admin.lastLogin ? new Date(admin.lastLogin).toLocaleString() : 'Never'}</span>
+                            <span className="md:hidden text-xs">{admin.lastLogin ? new Date(admin.lastLogin).toLocaleDateString() : 'Never'}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div className="flex space-x-2">
+                          <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex space-x-1 md:space-x-2">
                               <button
                                 onClick={() => handleEdit(admin)}
-                                className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                className="text-blue-600 hover:text-blue-900 p-1 md:p-2 rounded-lg hover:bg-blue-50 transition-colors"
                               >
                                 <Edit3 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDelete(admin.id)}
-                                className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                                className="text-red-600 hover:text-red-900 p-1 md:p-2 rounded-lg hover:bg-red-50 transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -415,9 +417,9 @@ const AdminManagement: React.FC = () => {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
+            <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900">
                   {editingAdmin ? 'Edit Admin' : 'Add New Admin'}
                 </h2>
                 <button
@@ -440,7 +442,7 @@ const AdminManagement: React.FC = () => {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                     placeholder="Enter admin name"
                   />
                 </div>
@@ -452,7 +454,7 @@ const AdminManagement: React.FC = () => {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                     placeholder="Enter email address"
                   />
                 </div>
@@ -467,7 +469,7 @@ const AdminManagement: React.FC = () => {
                       required={!editingAdmin}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 md:px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                       placeholder="Enter password"
                     />
                     <button
@@ -485,7 +487,7 @@ const AdminManagement: React.FC = () => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as 'Admin' | 'Sub-Admin' | 'Analyst' })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                   >
                     <option value="Admin">Admin</option>
                     <option value="Sub-Admin">Sub-Admin</option>
@@ -494,7 +496,7 @@ const AdminManagement: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
                     <strong className="font-bold">Error!</strong>
                     <span className="block sm:inline"> {error}</span>
                     <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
@@ -505,7 +507,7 @@ const AdminManagement: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex space-x-4 pt-4">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -513,13 +515,13 @@ const AdminManagement: React.FC = () => {
                       setEditingAdmin(null);
                       setFormData({ name: '', email: '', password: '', role: 'Analyst' });
                     }}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm md:text-base"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
                     disabled={loading}
                   >
                     {loading ? 'Saving...' : editingAdmin ? 'Update Admin' : 'Add Admin'}

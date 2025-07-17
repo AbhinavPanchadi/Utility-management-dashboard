@@ -156,56 +156,56 @@ const Analytics: React.FC = () => {
     gradient: string;
     suffix?: string;
   }) => (
-    <div className={`${gradient} rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="bg-white/20 rounded-full p-3">
-          <Icon className="w-6 h-6" />
+    <div className={`${gradient} rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
+      <div className="flex items-center justify-between mb-3 md:mb-4">
+        <div className="bg-white/20 rounded-full p-2 md:p-3">
+          <Icon className="w-5 h-5 md:w-6 md:h-6" />
         </div>
-        <div className={`flex items-center space-x-1 text-sm ${
+        <div className={`flex items-center space-x-1 text-xs md:text-sm ${
           changeType === 'increase' ? 'text-green-200' : 'text-red-200'
         }`}>
           {changeType === 'increase' ? (
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp className="w-3 h-3 md:w-4 md:h-4" />
           ) : (
-            <ArrowDown className="w-4 h-4" />
+            <ArrowDown className="w-3 h-3 md:w-4 md:h-4" />
           )}
           <span>{change}</span>
         </div>
       </div>
       <div>
-        <p className="text-white/80 text-sm font-medium mb-1">{title}</p>
-        <p className="text-3xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}{suffix}</p>
+        <p className="text-white/80 text-xs md:text-sm font-medium mb-1">{title}</p>
+        <p className="text-xl md:text-3xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}{suffix}</p>
       </div>
     </div>
   );
 
   const TrafficSourceCard = ({ source, percentage, color }: { source: string; percentage: number; color: string }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-      <div className="flex items-center space-x-3">
-        <div className={`w-3 h-3 rounded-full ${color}`}></div>
-        <span className="font-medium text-gray-900 capitalize">{source}</span>
+    <div className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg">
+      <div className="flex items-center space-x-2 md:space-x-3">
+        <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${color}`}></div>
+        <span className="font-medium text-gray-900 capitalize text-sm md:text-base">{source}</span>
       </div>
       <div className="text-right">
-        <span className="text-lg font-semibold text-gray-900">{percentage}%</span>
+        <span className="text-base md:text-lg font-semibold text-gray-900">{percentage}%</span>
       </div>
     </div>
   );
 
   const LoadingState = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="bg-gray-200 rounded-2xl p-6 animate-pulse">
-            <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-            <div className="h-8 bg-gray-300 rounded w-1/3"></div>
+          <div key={i} className="bg-gray-200 rounded-2xl p-4 md:p-6 animate-pulse">
+            <div className="h-3 md:h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+            <div className="h-6 md:h-8 bg-gray-300 rounded w-1/3"></div>
           </div>
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map(i => (
-          <div key={i} className="bg-white rounded-2xl p-6 shadow-lg">
+          <div key={i} className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
             <div className="h-4 bg-gray-300 rounded w-1/4 mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-48 md:h-64 bg-gray-200 rounded animate-pulse"></div>
           </div>
         ))}
       </div>
@@ -214,10 +214,10 @@ const Analytics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 p-8 min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-600">Track your performance and user engagement</p>
+      <div className="bg-gray-50 p-4 md:p-8 min-h-screen">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-600">Track your performance and user engagement</p>
         </div>
         <LoadingState />
       </div>
@@ -226,18 +226,18 @@ const Analytics: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-gray-50 p-8 min-h-screen">
+      <div className="bg-gray-50 p-4 md:p-8 min-h-screen">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-            <p className="text-gray-600">Track your performance and user engagement</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+            <p className="text-sm md:text-base text-gray-600">Track your performance and user engagement</p>
           </div>
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
             >
               <option value="1d">Last 24 hours</option>
               <option value="7d">Last 7 days</option>
@@ -247,12 +247,12 @@ const Analytics: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center space-x-2 px-3 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm md:text-base"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="flex items-center justify-center space-x-2 px-3 md:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm md:text-base">
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
@@ -261,19 +261,19 @@ const Analytics: React.FC = () => {
 
         {/* Real-time Users */}
         <div className="mb-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-green-500">
-            <div className="flex items-center space-x-3">
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border-l-4 border-green-500">
+            <div className="flex items-center space-x-2 md:space-x-3">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-600">Real-time Users</span>
+                <div className="w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs md:text-sm font-medium text-gray-600">Real-time Users</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">{data?.realtimeUsers}</span>
+              <span className="text-xl md:text-2xl font-bold text-gray-900">{data?.realtimeUsers}</span>
             </div>
           </div>
         </div>
 
         {/* Overview Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <MetricCard
             title="Total Registered Users"
             value={data?.overview.totalUsers || 0}
@@ -327,14 +327,14 @@ const Analytics: React.FC = () => {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 md:mb-8">
           {/* Weekly Traffic Chart */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Daily Visitors This Week</h3>
-              <LineChart className="w-5 h-5 text-gray-400" />
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">Daily Visitors This Week</h3>
+              <LineChart className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             </div>
-            <div className="h-64 flex items-end justify-between space-x-2">
+            <div className="h-48 md:h-64 flex items-end justify-between space-x-1 md:space-x-2">
               {data?.weeklyData.map((day, index) => (
                 <div key={day.day} className="flex-1 flex flex-col items-center">
                   <div 
@@ -349,12 +349,12 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* Traffic Sources */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">How Users Find Us</h3>
-              <PieChart className="w-5 h-5 text-gray-400" />
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">How Users Find Us</h3>
+              <PieChart className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               <TrafficSourceCard source="Google Search" percentage={data?.traffic.organic || 0} color="bg-green-500" />
               <TrafficSourceCard source="Direct Visit" percentage={data?.traffic.direct || 0} color="bg-blue-500" />
               <TrafficSourceCard source="Social Media" percentage={data?.traffic.social || 0} color="bg-purple-500" />
@@ -368,28 +368,28 @@ const Analytics: React.FC = () => {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Top Pages */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Most Popular Pages</h3>
-              <BarChart3 className="w-5 h-5 text-gray-400" />
+          <div className="lg:col-span-2 bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">Most Popular Pages</h3>
+              <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Page</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-600">Total Views</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-600">Unique Visitors</th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-600">Quick Exits</th>
+                    <th className="text-left py-2 md:py-3 px-2 md:px-4 font-medium text-gray-600 text-sm">Page</th>
+                    <th className="text-right py-2 md:py-3 px-2 md:px-4 font-medium text-gray-600 text-sm">Total Views</th>
+                    <th className="text-right py-2 md:py-3 px-2 md:px-4 font-medium text-gray-600 text-sm">Unique Visitors</th>
+                    <th className="text-right py-2 md:py-3 px-2 md:px-4 font-medium text-gray-600 text-sm">Quick Exits</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data?.topPages.map((page, index) => (
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium text-gray-900">{page.page}</td>
-                      <td className="py-3 px-4 text-right text-gray-600">{page.views.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right text-gray-600">{page.uniqueViews.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-2 md:py-3 px-2 md:px-4 font-medium text-gray-900 text-sm">{page.page}</td>
+                      <td className="py-2 md:py-3 px-2 md:px-4 text-right text-gray-600 text-sm">{page.views.toLocaleString()}</td>
+                      <td className="py-2 md:py-3 px-2 md:px-4 text-right text-gray-600 text-sm">{page.uniqueViews.toLocaleString()}</td>
+                      <td className="py-2 md:py-3 px-2 md:px-4 text-right">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           page.bounceRate < 30 
                             ? 'bg-green-100 text-green-800' 
@@ -408,50 +408,50 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* Device & Location Stats */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {/* Device Breakdown */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Device Usage</h3>
-                <Monitor className="w-5 h-5 text-gray-400" />
+            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900">Device Usage</h3>
+                <Monitor className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Monitor className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Desktop</span>
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <Monitor className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900 text-sm md:text-base">Desktop</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{data?.devices.desktop}%</span>
+                  <span className="text-base md:text-lg font-semibold text-gray-900">{data?.devices.desktop}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Smartphone className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Mobile</span>
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <Smartphone className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900 text-sm md:text-base">Mobile</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{data?.devices.mobile}%</span>
+                  <span className="text-base md:text-lg font-semibold text-gray-900">{data?.devices.mobile}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Monitor className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Tablet</span>
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <Monitor className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900 text-sm md:text-base">Tablet</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{data?.devices.tablet}%</span>
+                  <span className="text-base md:text-lg font-semibold text-gray-900">{data?.devices.tablet}%</span>
                 </div>
               </div>
             </div>
 
             {/* Top Countries */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Visitor Locations</h3>
-                <Globe className="w-5 h-5 text-gray-400" />
+            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900">Visitor Locations</h3>
+                <Globe className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {data?.countries.map((country, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{country.country}</span>
+                    <span className="font-medium text-gray-900 text-sm md:text-base">{country.country}</span>
                     <div className="text-right">
-                      <div className="text-sm font-semibold text-gray-900">{country.users.toLocaleString()}</div>
+                      <div className="text-xs md:text-sm font-semibold text-gray-900">{country.users.toLocaleString()}</div>
                       <div className="text-xs text-gray-500">{country.percentage}%</div>
                     </div>
                   </div>

@@ -1,69 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
-const headerStyle: React.CSSProperties = {
-  background: '#18181b',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-  padding: '16px 32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  position: 'relative',
-  minHeight: 64,
-  zIndex: 100,
-};
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
 
-const titleStyle: React.CSSProperties = {
-  fontSize: 28,
-  fontWeight: 700,
-  letterSpacing: 1,
-  color: '#22d3ee',
-  textAlign: 'center',
-  flex: 1,
-  pointerEvents: 'none',
-  userSelect: 'none',
-};
-
-const userButtonStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  background: '#2563eb',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 8,
-  padding: '8px 16px',
-  cursor: 'pointer',
-  fontWeight: 500,
-  fontSize: 16,
-  outline: 'none',
-  gap: 8,
-};
-
-const dropdownStyle: React.CSSProperties = {
-  position: 'absolute',
-  right: 0,
-  marginTop: 8,
-  width: 160,
-  background: '#fff',
-  borderRadius: 8,
-  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-  zIndex: 200,
-  overflow: 'hidden',
-};
-
-const dropdownItemStyle: React.CSSProperties = {
-  padding: '12px 20px',
-  color: '#18181b',
-  background: 'none',
-  border: 'none',
-  width: '100%',
-  textAlign: 'left',
-  fontSize: 15,
-  cursor: 'pointer',
-  transition: 'background 0.2s',
-};
-
-const Header: React.FC = () => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -84,34 +26,44 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header style={headerStyle}>
-      <div style={titleStyle}>
-        <span style={{ color: '#4ade80' }}>Vidya</span>
-        <span style={{ color: '#60a5fa', marginLeft: 2 }}>yug</span>
+    <header className="bg-zinc-900 shadow flex items-center justify-between px-4 md:px-8 py-4 min-h-[64px] relative z-10">
+      {/* Mobile/tablet menu button (below lg) */}
+      <button
+        className="lg:hidden mr-2 p-2 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        onClick={onMenuClick}
+        aria-label="Open sidebar menu"
+      >
+        <svg className="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <div className="text-2xl md:text-3xl font-bold tracking-wide text-center flex-1 select-none pointer-events-none">
+        <span className="text-emerald-400">Vidya</span>
+        <span className="text-blue-400 ml-1">yug</span>
       </div>
       {user && (
-        <div style={{ position: 'relative', marginLeft: 'auto' }} ref={dropdownRef}>
+        <div className="relative ml-auto" ref={dropdownRef}>
           <button
-            style={userButtonStyle}
+            className="flex items-center bg-blue-600 text-white rounded px-4 py-2 font-medium text-base gap-2 focus:outline-none"
             onClick={() => setDropdownOpen((open) => !open)}
             aria-haspopup="true"
             aria-expanded={dropdownOpen}
           >
-            <span style={{ fontWeight: 600 }}>{user.username}</span>
+            <span className="font-semibold">{user.username}</span>
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {dropdownOpen && (
-            <div style={dropdownStyle}>
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-20 overflow-hidden">
               <button
-                style={dropdownItemStyle}
+                className="w-full text-left px-5 py-3 text-zinc-900 hover:bg-zinc-100 text-[15px]"
                 onClick={() => setDropdownOpen(false)}
               >
                 Profile
               </button>
               <button
-                style={{ ...dropdownItemStyle, color: '#ef4444' }}
+                className="w-full text-left px-5 py-3 text-red-500 hover:bg-zinc-100 text-[15px]"
                 onClick={handleLogout}
               >
                 Logout

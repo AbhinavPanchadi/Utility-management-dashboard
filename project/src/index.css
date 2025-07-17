@@ -1,3 +1,37 @@
+html, body, #root {
+  height: 100%;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  @keyframes slide-in-left {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+  .animate-slide-in-left {
+    animation: slide-in-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes slide-out-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+  .animate-slide-out-left {
+    animation: slide-out-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .text-shadow-sm {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+  
+  .text-shadow-md {
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  }
+}
