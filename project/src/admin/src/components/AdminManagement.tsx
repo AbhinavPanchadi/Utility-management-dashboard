@@ -21,12 +21,13 @@ import {
 } from 'lucide-react';
 import { adminAPI } from '../../../utils/api';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface Admin {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Sub-Admin' | 'Analyst';
+  roles: string[];
   status: 'Active' | 'Inactive';
   lastLogin: string;
   avatar?: string;
@@ -36,10 +37,26 @@ interface AdminFormData {
   name: string;
   email: string;
   password: string;
-  role: 'Admin' | 'Sub-Admin' | 'Analyst';
+  // role: 'Admin' | 'Sub-Admin' | 'Analyst'; // Remove this line
+}
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  full_name?: string;
+}
+interface Role {
+  id: number;
+  name: string;
+}
+interface Permission {
+  id: number;
+  view_name: string;
 }
 
 const AdminManagement: React.FC = () => {
+  const { user, isLoading: authLoading } = useAuth();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,11 +68,21 @@ const AdminManagement: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    role: 'Analyst'
+    // role: 'Analyst' // Remove this line
   });
   const [metrics, setMetrics] = useState({ totalAdmins: 0, activeAdmins: 0, subAdmins: 0, analysts: 0 });
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedRole, setSelectedRole] = useState<number | null>(null);
+  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  // Only allow admin features if user has Admin role
+  const isAdmin = user?.roles?.includes('Admin');
 
   // Fetch admins and metrics
   useEffect(() => {
@@ -68,7 +95,8 @@ const AdminManagement: React.FC = () => {
         setAdmins(adminsData.map(a => ({
           ...a,
           name: a.full_name || a.username,
-          lastLogin: a.last_login
+          lastLogin: a.last_login,
+          roles: a.roles || [],
         })));
         setMetrics(metricsData);
       })
@@ -80,6 +108,13 @@ const AdminManagement: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  // Fetch users, roles, permissions on mount
+  useEffect(() => {
+    if (isAdmin) {
+      fetchUsersRolesPermissions();
+    }
+  }, [isAdmin]);
+
   const fetchAdminsAndMetrics = async () => {
     setLoading(true);
     try {
@@ -90,7 +125,8 @@ const AdminManagement: React.FC = () => {
       setAdmins(adminsData.map(a => ({
         ...a,
         name: a.full_name || a.username,
-        lastLogin: a.last_login
+        lastLogin: a.last_login,
+        roles: a.roles || [],
       })));
       setMetrics(metricsData);
     } catch (err: any) {
@@ -102,11 +138,55 @@ const AdminManagement: React.FC = () => {
     }
   };
 
+  const fetchUsersRolesPermissions = async () => {
+    try {
+      const [usersRes, rolesRes, permsRes] = await Promise.all([
+        fetch('/users').then(r => r.json()),
+        fetch('/roles').then(r => r.json()),
+        fetch('/permissions').then(r => r.json()),
+      ]);
+      setUsers(usersRes);
+      setRoles(rolesRes);
+      setPermissions(permsRes);
+    } catch (err: any) {
+      toast.error('Failed to fetch users/roles/permissions');
+    }
+  };
+
+  const handleAssign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser || !selectedRole || selectedPermissions.length === 0) {
+      toast.error('Select user, role, and at least one permission');
+      return;
+    }
+    setAssignLoading(true);
+    try {
+      const res = await fetch('/user-role-permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: selectedUser,
+          role_id: selectedRole,
+          permission_ids: selectedPermissions,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to assign');
+      toast.success('Role and permissions assigned!');
+      setSelectedUser(null);
+      setSelectedRole(null);
+      setSelectedPermissions([]);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to assign');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
   const validateForm = () => {
     if (!formData.name) return 'Name is required';
     if (!formData.email) return 'Email is required';
     if (!editingAdmin && !formData.password) return 'Password is required';
-    if (!formData.role) return 'Role is required';
+    // if (!formData.role) return 'Role is required'; // Remove this line
     return null;
   };
 
@@ -123,6 +203,7 @@ const AdminManagement: React.FC = () => {
     try {
       const payload = { ...formData, username: formData.name, full_name: formData.name };
       delete payload.name;
+      // delete payload.role; // Remove this line
       if (editingAdmin) {
         await adminAPI.update(editingAdmin.id, payload);
         toast.success('Admin updated successfully');
@@ -133,7 +214,7 @@ const AdminManagement: React.FC = () => {
       await fetchAdminsAndMetrics();
       setShowModal(false);
       setEditingAdmin(null);
-      setFormData({ name: '', email: '', password: '', role: 'Analyst' });
+      setFormData({ name: '', email: '', password: '' });
     } catch (err: any) {
       toast.error(err.message || 'Failed to save admin');
     } finally {
@@ -147,7 +228,7 @@ const AdminManagement: React.FC = () => {
       name: admin.name,
       email: admin.email,
       password: '',
-      role: admin.role
+      // role: admin.role // Remove this line
     });
     setShowModal(true);
   };
@@ -188,7 +269,7 @@ const AdminManagement: React.FC = () => {
     if (!admin || !admin.name || !admin.email) return false;
     const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          admin.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'All' || admin.role === filterRole;
+    const matchesRole = filterRole === 'All' || (admin.roles && admin.roles.includes(filterRole));
     return matchesSearch && matchesRole;
   });
 
@@ -257,8 +338,7 @@ const AdminManagement: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Admin Management</h1>
           <p className="text-sm md:text-base text-gray-600">Manage your admin users and their permissions</p>
         </div>
-
-        {loading ? (
+        {(loading || authLoading) ? (
           <LoadingState />
         ) : (
           <>
@@ -359,13 +439,13 @@ const AdminManagement: React.FC = () => {
                           </td>
                           <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              admin.role === 'Admin' 
+                              admin.roles && admin.roles.length > 0 && admin.roles[0] === 'Admin' 
                                 ? 'bg-red-100 text-red-800' 
-                                : admin.role === 'Sub-Admin'
+                                : admin.roles && admin.roles.length > 0 && admin.roles[0] === 'Sub-Admin'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-green-100 text-green-800'
                             }`}>
-                              {admin.role}
+                              {admin.roles && admin.roles.length > 0 ? admin.roles[0] : '-'}
                             </span>
                           </td>
                           <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-900">
@@ -413,6 +493,64 @@ const AdminManagement: React.FC = () => {
             </div>
           </>
         )}
+        {/* Only show Assign Roles & Permissions if user is Admin */}
+        {isAdmin && (
+          <div className="bg-white rounded-lg shadow p-6 mt-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center"><Shield className="mr-2" />Assign Roles & Permissions</h2>
+            <form onSubmit={handleAssign} className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">User</label>
+                <select
+                  className="w-full border rounded px-2 py-1"
+                  value={selectedUser ?? ''}
+                  onChange={e => setSelectedUser(Number(e.target.value) || null)}
+                >
+                  <option value="">Select user</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name || u.username} ({u.email})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Role</label>
+                <select
+                  className="w-full border rounded px-2 py-1"
+                  value={selectedRole ?? ''}
+                  onChange={e => setSelectedRole(Number(e.target.value) || null)}
+                >
+                  <option value="">Select role</option>
+                  {roles.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Permissions</label>
+                <select
+                  className="w-full border rounded px-2 py-1"
+                  multiple
+                  value={selectedPermissions.map(String)}
+                  onChange={e => {
+                    const options = Array.from(e.target.selectedOptions).map(o => Number(o.value));
+                    setSelectedPermissions(options);
+                  }}
+                >
+                  {permissions.map(p => (
+                    <option key={p.id} value={p.id}>{p.view_name}</option>
+                  ))}
+                </select>
+                <small className="text-gray-500">Hold Ctrl (Cmd on Mac) to select multiple</small>
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                disabled={assignLoading}
+              >
+                {assignLoading ? 'Assigning...' : 'Assign'}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Modal */}
         {showModal && (
@@ -426,7 +564,7 @@ const AdminManagement: React.FC = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEditingAdmin(null);
-                    setFormData({ name: '', email: '', password: '', role: 'Analyst' });
+                    setFormData({ name: '', email: '', password: '' });
                   }}
                   className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
@@ -482,7 +620,7 @@ const AdminManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <select
                     value={formData.role}
@@ -493,7 +631,7 @@ const AdminManagement: React.FC = () => {
                     <option value="Sub-Admin">Sub-Admin</option>
                     <option value="Analyst">Analyst</option>
                   </select>
-                </div>
+                </div> */}
 
                 {error && (
                   <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
@@ -513,7 +651,7 @@ const AdminManagement: React.FC = () => {
                     onClick={() => {
                       setShowModal(false);
                       setEditingAdmin(null);
-                      setFormData({ name: '', email: '', password: '', role: 'Analyst' });
+                      setFormData({ name: '', email: '', password: '' });
                     }}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm md:text-base"
                   >

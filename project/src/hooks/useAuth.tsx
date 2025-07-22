@@ -27,6 +27,8 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     checkAuthStatus();
@@ -37,12 +39,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const token = localStorage.getItem('token');
       if (token) {
         const userData = await authAPI.getCurrentUser();
-        setUser(userData);
+        let permsData = { roles: [], permissions: [] };
+        try {
+          permsData = await authAPI.getPermissions();
+        } catch {}
+        setUser({ ...userData, ...permsData });
+        setRoles(permsData.roles);
+        setPermissions(permsData.permissions);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
       setUser(null);
+      setRoles([]);
+      setPermissions([]);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +64,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const response: AuthResponse = await authAPI.login(credentials.username, credentials.password);
       localStorage.setItem('token', response.access_token);
       const userData = await authAPI.getCurrentUser();
-      setUser(userData);
+      let permsData = { roles: [], permissions: [] };
+      try {
+        permsData = await authAPI.getPermissions();
+      } catch {}
+      setUser({ ...userData, ...permsData });
+      setRoles(permsData.roles);
+      setPermissions(permsData.permissions);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -66,6 +82,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     localStorage.removeItem('token');
     setUser(null);
+    setRoles([]);
+    setPermissions([]);
   };
 
   const value: AuthContextType = {
@@ -74,6 +92,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAuthenticated: !!user,
     login,
     logout,
+    // Optionally expose roles and permissions if needed
+    // roles,
+    // permissions,
   };
 
   return (

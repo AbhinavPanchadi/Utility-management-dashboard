@@ -4,7 +4,8 @@ import json
 from datetime import datetime
 import random
 
-DATABASE_URL = "sqlite:///./app.db"
+# Use absolute path for the database file
+DATABASE_URL = "sqlite:///D:/cursor/project 3/project/backend/app.db"
 engine = create_engine(DATABASE_URL, echo=True)
 
 def create_db_and_tables():

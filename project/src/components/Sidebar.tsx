@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Users, Shield, BarChart3, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 interface SidebarProps {
   open?: boolean;
@@ -19,6 +20,7 @@ function useIsDesktop() {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isDashboard = location.pathname === '/dashboard';
@@ -65,43 +67,57 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
     }
   };
 
+  // Permission checks
+  const canViewHome = user?.permissions?.includes('home_dashboard');
+  const canViewUsers = user?.permissions?.includes('user_dashboard');
+  const canViewAdmin = user?.roles?.includes('Admin'); // Only Admins see Admin page
+  const canViewAnalytics = user?.permissions?.includes('analytics_dashboard');
+
   // Sidebar content
   const content = (
     <aside className="bg-zinc-900 text-white w-64 h-screen p-8 flex flex-col shadow-lg z-30">
       <div className="mb-8 text-xl font-semibold text-center tracking-wide text-sky-400 select-none">Dashboard</div>
       <nav className="flex flex-col gap-3">
-        <button
-          className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isDashboard ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-          onClick={() => handleNavigation('/dashboard')}
-          aria-current={isDashboard ? 'page' : undefined}
-        >
-          <Home size={20} />
-          <span>Home</span>
-        </button>
-        <button
-          className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isUsers ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-          onClick={() => handleNavigation('/users')}
-          aria-current={isUsers ? 'page' : undefined}
-        >
-          <Users size={20} />
-          <span>Users</span>
-        </button>
-        <button
-          className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAdmin ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-          onClick={() => handleNavigation('/admin')}
-          aria-current={isAdmin ? 'page' : undefined}
-        >
-          <Shield size={20} />
-          <span>Admin</span>
-        </button>
-        <button
-          className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAnalytics ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-          onClick={() => handleNavigation('/analytics')}
-          aria-current={isAnalytics ? 'page' : undefined}
-        >
-          <BarChart3 size={20} />
-          <span>Analytics</span>
-        </button>
+        {canViewHome && (
+          <button
+            className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isDashboard ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
+            onClick={() => handleNavigation('/dashboard')}
+            aria-current={isDashboard ? 'page' : undefined}
+          >
+            <Home size={20} />
+            <span>Home</span>
+          </button>
+        )}
+        {canViewUsers && (
+          <button
+            className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isUsers ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
+            onClick={() => handleNavigation('/users')}
+            aria-current={isUsers ? 'page' : undefined}
+          >
+            <Users size={20} />
+            <span>Users</span>
+          </button>
+        )}
+        {canViewAdmin && (
+          <button
+            className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAdmin ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
+            onClick={() => handleNavigation('/admin')}
+            aria-current={isAdmin ? 'page' : undefined}
+          >
+            <Shield size={20} />
+            <span>Admin</span>
+          </button>
+        )}
+        {canViewAnalytics && (
+          <button
+            className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAnalytics ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
+            onClick={() => handleNavigation('/analytics')}
+            aria-current={isAnalytics ? 'page' : undefined}
+          >
+            <BarChart3 size={20} />
+            <span>Analytics</span>
+          </button>
+        )}
       </nav>
     </aside>
   );

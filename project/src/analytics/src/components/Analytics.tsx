@@ -224,6 +224,8 @@ const Analytics: React.FC = () => {
     );
   }
 
+  const permissions = ["home_dashboard", "analytics_dashboard"]; // fetched from backend
+
   return (
     <div>
       <div className="bg-gray-50 p-4 md:p-8 min-h-screen">

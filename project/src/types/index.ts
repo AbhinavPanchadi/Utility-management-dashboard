@@ -83,6 +83,8 @@ export interface AuthUser {
   bio?: string;
   avatar?: string;
   created_at: string;
+  roles?: string[];
+  permissions?: string[];
 }
 
 export interface AuthResponse {

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from typing import Optional, List
 from jose import JWTError, jwt
 from datetime import timedelta
@@ -10,9 +10,14 @@ import json
 from fastapi import APIRouter
 
 from database import create_db_and_tables, get_session
-from models import User, UserAnalytics
-from schemas import UserCreate, UserRead, UserLogin, Token
+from models import User, UserAnalytics, Role, Permission, UserRolePermission
+from schemas import (
+    UserCreate, UserRead, UserLogin, Token,
+    RoleBase, RoleRead, PermissionBase, PermissionRead,
+    UserRolePermissionBase, UserRolePermissionRead, AssignRolePermission
+)
 from auth import verify_password, get_password_hash, create_access_token, SECRET_KEY, ALGORITHM
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -120,19 +125,84 @@ def get_user_by_number(number: str, session: Session = Depends(get_session)):
 
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
 
-@admin_router.get("/", response_model=List[UserRead])
-def list_admins(session: Session = Depends(get_session), role: Optional[str] = None, search: Optional[str] = None):
-    query = select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]))
+class AdminUserOut(BaseModel):
+    id: int
+    username: str
+    email: str
+    full_name: Optional[str] = None
+    status: Optional[str] = None
+    last_login: Optional[str] = None
+    avatar: Optional[str] = None
+    roles: List[str] = []
+
+    class Config:
+        orm_mode = True
+
+@app.get("/me/permissions")
+def get_me_permissions(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    urps = session.exec(select(UserRolePermission).where(UserRolePermission.user_id == current_user.id)).all()
+    role_ids = set([urp.role_id for urp in urps if urp.role_id])
+    permission_ids = set([urp.permission_id for urp in urps if urp.permission_id])
+    roles = []
+    if role_ids:
+        roles = [r.name for r in session.exec(select(Role).where(Role.id.in_(role_ids))).all()]
+    permissions = []
+    if permission_ids:
+        permissions = [p.view_name for p in session.exec(select(Permission).where(Permission.id.in_(permission_ids))).all()]
+    return {"roles": roles, "permissions": permissions}
+
+# Utility to check if user has a permission
+from fastapi import Request
+
+def has_permission(user: User, permission: str, session: Session) -> bool:
+    urps = session.exec(select(UserRolePermission).where(UserRolePermission.user_id == user.id)).all()
+    permission_ids = [urp.permission_id for urp in urps if urp.permission_id]
+    if not permission_ids:
+        return False
+    permissions = session.exec(select(Permission).where(Permission.id.in_(permission_ids))).all()
+    return permission in [p.view_name for p in permissions]
+
+# Update admin endpoints to check for 'admin_access' permission
+@admin_router.get("/", response_model=List[AdminUserOut])
+def list_admins(request: Request, session: Session = Depends(get_session), current_user: User = Depends(get_current_user), role: Optional[str] = None, search: Optional[str] = None):
+    if not has_permission(current_user, "home_dashboard", session):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    # Get role ids for Admin, Sub-Admin, Analyst
+    role_names = ["Admin", "Sub-Admin", "Analyst"]
     if role:
-        query = query.where(User.role == role)
+        role_names = [role]
+    role_objs = session.exec(select(Role).where(Role.name.in_(role_names))).all()
+    role_ids = [r.id for r in role_objs]
+    urps = session.exec(select(UserRolePermission).where(UserRolePermission.role_id.in_(role_ids))).all()
+    user_ids = list(set([urp.user_id for urp in urps]))
+    query = select(User).where(User.id.in_(user_ids))
     if search:
         query = query.where((User.username.contains(search)) | (User.email.contains(search)))
-    return session.exec(query).all()
+    users = session.exec(query).all()
+    # Map user_id to roles
+    user_roles_map = {}
+    for urp in urps:
+        user_roles_map.setdefault(urp.user_id, set()).add(urp.role_id)
+    role_id_to_name = {r.id: r.name for r in role_objs}
+    result = []
+    for user in users:
+        roles = [role_id_to_name[rid] for rid in user_roles_map.get(user.id, []) if rid in role_id_to_name]
+        result.append(AdminUserOut(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            full_name=user.full_name,
+            status=user.status,
+            last_login=user.last_login.isoformat() if user.last_login else None,
+            avatar=user.avatar,
+            roles=roles
+        ))
+    return result
 
 @admin_router.post("/", response_model=UserRead)
-def create_admin(user: UserCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    if current_user.role != "Admin":
-        raise HTTPException(status_code=403, detail="Only Admins can create admins")
+def create_admin(user: UserCreate, session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
+    if not has_permission(current_user, "home_dashboard", session):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     db_user = session.exec(select(User).where((User.username == user.username) | (User.email == user.email))).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Username or email already registered")
@@ -144,18 +214,25 @@ def create_admin(user: UserCreate, current_user: User = Depends(get_current_user
         full_name=user.full_name,
         bio=user.bio,
         avatar=user.avatar,
-        role=user.role,
         status=user.status
     )
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
+    # Assign role via UserRolePermission (default to Admin if not provided)
+    role_name = user.status if user.status in ["Admin", "Sub-Admin", "Analyst"] else "Admin"
+    role = session.exec(select(Role).where(Role.name == role_name)).first()
+    if not role:
+        raise HTTPException(status_code=400, detail="Role not found")
+    urp = UserRolePermission(user_id=new_user.id, role_id=role.id, permission_id=None)
+    session.add(urp)
+    session.commit()
     return new_user
 
 @admin_router.put("/{admin_id}", response_model=UserRead)
 def update_admin(admin_id: int, update: UserCreate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    if current_user.role != "Admin":
-        raise HTTPException(status_code=403, detail="Only Admins can update admins")
+    if not has_permission(current_user, "home_dashboard", session):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     admin = session.get(User, admin_id)
     if not admin:
         raise HTTPException(status_code=404, detail="Admin not found")
@@ -171,8 +248,8 @@ def update_admin(admin_id: int, update: UserCreate, current_user: User = Depends
 
 @admin_router.delete("/{admin_id}")
 def delete_admin(admin_id: int, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    if current_user.role != "Admin":
-        raise HTTPException(status_code=403, detail="Only Admins can delete admins")
+    if not has_permission(current_user, "home_dashboard", session):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     admin = session.get(User, admin_id)
     if not admin:
         raise HTTPException(status_code=404, detail="Admin not found")
@@ -182,8 +259,8 @@ def delete_admin(admin_id: int, current_user: User = Depends(get_current_user), 
 
 @admin_router.patch("/{admin_id}/status")
 def toggle_admin_status(admin_id: int, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    if current_user.role != "Admin":
-        raise HTTPException(status_code=403, detail="Only Admins can toggle status")
+    if not has_permission(current_user, "home_dashboard", session):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     admin = session.get(User, admin_id)
     if not admin:
         raise HTTPException(status_code=404, detail="Admin not found")
@@ -195,10 +272,84 @@ def toggle_admin_status(admin_id: int, current_user: User = Depends(get_current_
 
 @admin_router.get("/metrics")
 def admin_metrics(session: Session = Depends(get_session)):
-    total = len(session.exec(select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]))).all())
-    active = len(session.exec(select(User).where(User.role.in_(["Admin", "Sub-Admin", "Analyst"]) & (User.status == "Active"))).all())
-    sub_admins = len(session.exec(select(User).where(User.role == "Sub-Admin")).all())
-    analysts = len(session.exec(select(User).where(User.role == "Analyst")).all())
+    # Get all roles of interest
+    roles = session.exec(select(Role).where(Role.name.in_(["Admin", "Sub-Admin", "Analyst"]))).all()
+    role_map = {r.name: r.id for r in roles}
+    urps = session.exec(select(UserRolePermission).where(UserRolePermission.role_id.in_(list(role_map.values())))).all()
+    user_role_map = {}
+    for urp in urps:
+        user_role_map.setdefault(urp.role_id, set()).add(urp.user_id)
+    total = len(set([urp.user_id for urp in urps]))
+    active = len(set([urp.user_id for urp in urps if session.get(User, urp.user_id).status == "Active"]))
+    sub_admins = len(user_role_map.get(role_map.get("Sub-Admin"), set()))
+    analysts = len(user_role_map.get(role_map.get("Analyst"), set()))
     return {"totalAdmins": total, "activeAdmins": active, "subAdmins": sub_admins, "analysts": analysts}
 
-app.include_router(admin_router) 
+app.include_router(admin_router)
+
+@app.post("/roles", response_model=RoleRead)
+def create_role(role: RoleBase, session: Session = Depends(get_session)):
+    db_role = session.exec(select(Role).where(Role.name == role.name)).first()
+    if db_role:
+        raise HTTPException(status_code=400, detail="Role already exists")
+    new_role = Role(name=role.name)
+    session.add(new_role)
+    session.commit()
+    session.refresh(new_role)
+    return new_role
+
+@app.get("/roles", response_model=List[RoleRead])
+def list_roles(session: Session = Depends(get_session)):
+    return session.exec(select(Role)).all()
+
+@app.post("/permissions", response_model=PermissionRead)
+def create_permission(permission: PermissionBase, session: Session = Depends(get_session)):
+    db_perm = session.exec(select(Permission).where(Permission.view_name == permission.view_name)).first()
+    if db_perm:
+        raise HTTPException(status_code=400, detail="Permission already exists")
+    new_perm = Permission(view_name=permission.view_name)
+    session.add(new_perm)
+    session.commit()
+    session.refresh(new_perm)
+    return new_perm
+
+@app.get("/permissions", response_model=List[PermissionRead])
+def list_permissions(session: Session = Depends(get_session)):
+    return session.exec(select(Permission)).all()
+
+@app.post("/user-role-permissions", response_model=List[UserRolePermissionRead])
+def assign_role_permissions(data: AssignRolePermission, session: Session = Depends(get_session)):
+    # Remove existing assignments for this user/role
+    session.exec(
+        select(UserRolePermission).where(
+            (UserRolePermission.user_id == data.user_id) &
+            (UserRolePermission.role_id == data.role_id)
+        )
+    ).delete()
+    # Assign new permissions
+    new_assignments = []
+    for perm_id in data.permission_ids:
+        urp = UserRolePermission(user_id=data.user_id, role_id=data.role_id, permission_id=perm_id)
+        session.add(urp)
+        new_assignments.append(urp)
+    session.commit()
+    for urp in new_assignments:
+        session.refresh(urp)
+    return new_assignments
+
+@app.get("/user-role-permissions/{user_id}", response_model=List[UserRolePermissionRead])
+def get_user_role_permissions(user_id: int, session: Session = Depends(get_session)):
+    return session.exec(select(UserRolePermission).where(UserRolePermission.user_id == user_id)).all()
+
+@app.get("/user-permissions/{user_id}", response_model=List[str])
+def get_user_permissions(user_id: int, session: Session = Depends(get_session)):
+    urps = session.exec(select(UserRolePermission).where(UserRolePermission.user_id == user_id)).all()
+    permission_ids = [urp.permission_id for urp in urps]
+    if not permission_ids:
+        return []
+    permissions = session.exec(select(Permission).where(Permission.id.in_(permission_ids))).all()
+    return [perm.view_name for perm in permissions]
+
+@app.get("/users", response_model=List[UserRead])
+def list_users(session: Session = Depends(get_session)):
+    return session.exec(select(User)).all() 

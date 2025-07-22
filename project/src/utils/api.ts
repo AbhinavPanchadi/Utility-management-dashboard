@@ -77,6 +77,10 @@ export const authAPI = {
       body: JSON.stringify({ password }),
     }, true);
   },
+
+  getPermissions: async () => {
+    return apiRequest('/me/permissions', {}, true);
+  },
 };
 
 // Dashboard API calls
