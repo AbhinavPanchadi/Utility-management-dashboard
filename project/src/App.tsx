@@ -28,7 +28,10 @@ function PermissionRoute({ children, permission, role }: { children: JSX.Element
   if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (permission && !user?.permissions?.includes(permission)) return <NotAuthorized />;
-  if (role && !user?.roles?.includes(role)) return <NotAuthorized />;
+  if (role) {
+    const allowedRoles = role.split(',').map(r => r.trim());
+    if (!user?.roles?.some((r: string) => allowedRoles.includes(r))) return <NotAuthorized />;
+  }
   return children;
 }
 
@@ -43,7 +46,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Header onMenuClick={() => setSidebarOpen((open) => !open)} />
       <div className="flex flex-row items-stretch">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 min-w-0 bg-gray-50 p-2 md:p-6 min-h-screen">{children}</main>
+        <main className="flex-1 min-w-0 bg-gray-50 p-2 md:p-6 min-h-screen lg:ml-64">{children}</main>
       </div>
     </>
   );
@@ -59,7 +62,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<PermissionRoute permission="home_dashboard"><Dashboard /></PermissionRoute>} />
             <Route path="/users" element={<PermissionRoute permission="user_dashboard"><UsersPage /></PermissionRoute>} />
-            <Route path="/admin" element={<PermissionRoute role="Admin"><AdminManagement /></PermissionRoute>} />
+            <Route path="/admin" element={<PermissionRoute role="Admin,Super-Admin"><AdminManagement /></PermissionRoute>} />
             <Route path="/analytics" element={<PermissionRoute permission="analytics_dashboard"><Analytics /></PermissionRoute>} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

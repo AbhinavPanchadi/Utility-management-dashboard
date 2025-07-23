@@ -28,6 +28,7 @@ class UserRead(BaseModel):
     payment_history: Optional[str] = None
     alert_history: Optional[str] = None
     recent_activity: Optional[str] = None
+    roles: Optional[List[str]] = []
     class Config:
         orm_mode = True
 

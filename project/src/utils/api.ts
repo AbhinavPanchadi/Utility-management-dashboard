@@ -200,3 +200,17 @@ export const adminAPI = {
     return apiRequest('/admin/metrics', {}, true);
   },
 };
+
+// Roles API calls
+export const rolesAPI = {
+  getAll: async () => {
+    return apiRequest('/roles');
+  },
+};
+
+// Permissions API calls
+export const permissionsAPI = {
+  getAll: async () => {
+    return apiRequest('/permissions');
+  },
+};

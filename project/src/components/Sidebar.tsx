@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   const location = useLocation();
   const isDashboard = location.pathname === '/dashboard';
   const isUsers = location.pathname === '/users';
-  const isAdmin = location.pathname === '/admin';
+  const isAdmin = user?.roles?.includes('Admin');
   const isAnalytics = location.pathname === '/analytics';
 
   const [closing, setClosing] = React.useState(false);
@@ -68,14 +68,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   };
 
   // Permission checks
+  const isSuperAdmin = user?.roles?.includes('Super-Admin');
   const canViewHome = user?.permissions?.includes('home_dashboard');
   const canViewUsers = user?.permissions?.includes('user_dashboard');
-  const canViewAdmin = user?.roles?.includes('Admin'); // Only Admins see Admin page
+  const canViewAdmin = isAdmin || isSuperAdmin; // Only Admins or Super-Admins see Admin page
   const canViewAnalytics = user?.permissions?.includes('analytics_dashboard');
 
   // Sidebar content
   const content = (
-    <aside className="bg-zinc-900 text-white w-64 h-screen p-8 flex flex-col shadow-lg z-30">
+    <aside className="bg-zinc-900 text-white w-64 h-screen p-8 flex flex-col shadow-2xl z-40 border-r border-zinc-800 fixed top-0 left-0 transition-all duration-300">
       <div className="mb-8 text-xl font-semibold text-center tracking-wide text-sky-400 select-none">Dashboard</div>
       <nav className="flex flex-col gap-3">
         {canViewHome && (
@@ -126,52 +127,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   return (
     <>
       {/* Desktop sidebar (lg and up) */}
-      <div className="hidden lg:block h-full">
-        <aside className="min-h-screen w-64 bg-zinc-900 text-white p-8 flex flex-col shadow-lg z-30">
-          <div className="mb-8 text-xl font-semibold text-center tracking-wide text-sky-400 select-none">Dashboard</div>
-          <nav className="flex flex-col gap-3">
-            <button
-              className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isDashboard ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-              onClick={() => handleNavigation('/dashboard')}
-              aria-current={isDashboard ? 'page' : undefined}
-            >
-              <Home size={20} />
-              <span>Home</span>
-            </button>
-            <button
-              className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isUsers ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-              onClick={() => handleNavigation('/users')}
-              aria-current={isUsers ? 'page' : undefined}
-            >
-              <Users size={20} />
-              <span>Users</span>
-            </button>
-            <button
-              className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAdmin ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-              onClick={() => handleNavigation('/admin')}
-              aria-current={isAdmin ? 'page' : undefined}
-            >
-              <Shield size={20} />
-              <span>Admin</span>
-            </button>
-            <button
-              className={`flex items-center gap-3 px-5 py-3 rounded-lg transition font-medium text-base focus:outline-none ${isAnalytics ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-zinc-800'}`}
-              onClick={() => handleNavigation('/analytics')}
-              aria-current={isAnalytics ? 'page' : undefined}
-            >
-              <BarChart3 size={20} />
-              <span>Analytics</span>
-            </button>
-          </nav>
-        </aside>
+      <div className="hidden lg:block">
+        {content}
       </div>
       {/* Mobile/tablet sidebar overlay (below lg) */}
       {open && (
-        <div className="fixed inset-0 z-40 flex lg:hidden">
+        <div className="fixed inset-0 z-50 flex lg:hidden">
           {/* Overlay background */}
           <div className="fixed inset-0 bg-black bg-opacity-40" onClick={handleClose} />
           {/* Sidebar panel */}
-          <div className={`relative w-64 min-h-full bg-zinc-900 shadow-lg ${closing ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
+          <div className={`relative w-64 min-h-full bg-zinc-900 shadow-2xl border-r border-zinc-800 ${closing ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
             <button
               className="absolute top-4 right-4 text-slate-300 hover:text-white p-2 rounded focus:outline-none"
               onClick={handleClose}

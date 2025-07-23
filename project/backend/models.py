@@ -21,7 +21,7 @@ class User(SQLModel, table=True):
     alert_history: Optional[str] = None  # JSON string
     recent_activity: Optional[str] = None  # JSON string
     # Relationships
-    user_role_permissions: List["UserRolePermission"] = Relationship(back_populates="user")
+    user_role_permissions: List["UserRolePermission"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"})
 
 class Role(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
