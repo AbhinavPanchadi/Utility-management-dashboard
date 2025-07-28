@@ -57,6 +57,152 @@ interface Permission {
   view_name: string;
 }
 
+console.log("AdminManagement rendered");
+const AssignRolesCard: React.FC = () => {
+  const { user } = useAuth();
+  const [users, setUsers] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedRole, setSelectedRole] = useState<number | null>(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignSuccess, setAssignSuccess] = useState(false);
+
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  const fetchAll = async () => {
+    const usersRes = await usersAPI.getAll();
+    const rolesRes = await rolesAPI.getAll();
+    setUsers(usersRes);
+    setRoles(rolesRes);
+  };
+
+  const handleAssign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser || !selectedRole) {
+      toast.error('Select user and role');
+      return;
+    }
+    setAssignLoading(true);
+    try {
+      // Fetch all permissions for the selected role
+      const permsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/roles/${selectedRole}/permissions`);
+      if (!permsRes.ok) throw new Error('Failed to fetch role permissions');
+      const rolePerms = await permsRes.json();
+      const permissionIds = rolePerms.map((p: any) => p.id);
+      // Assign role and all permissions to the user
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user-role-permissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: selectedUser,
+          role_id: selectedRole,
+          permission_ids: permissionIds,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to assign role and permissions');
+      setAssignSuccess(true);
+      setTimeout(() => setAssignSuccess(false), 2000);
+      await fetchAll();
+      setSelectedUser(null);
+      setSelectedRole(null);
+      toast.success('Role and permissions assigned!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to assign');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(u => {
+    const matchesSearch =
+      u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.username?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase());
+    const mainRole = u.roles && u.roles.length > 0 ? u.roles[0] : '-';
+    const matchesRole = !filterRole || mainRole === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
+  return (
+    <div className="rounded-2xl bg-white shadow-lg border border-blue-100 p-4 md:p-6 mt-6 max-w-4xl w-full mx-auto">
+      <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Assign Role</h2>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 w-full text-sm"
+        />
+        <select
+          className="border rounded px-3 py-2 text-sm"
+          value={filterRole}
+          onChange={e => setFilterRole(e.target.value)}
+        >
+          <option value="">All Roles</option>
+          {roles.map(r => (
+            <option key={r.id} value={r.name}>{r.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="overflow-x-auto">
+        <div className="divide-y divide-gray-200 max-h-80 overflow-y-auto">
+          {filteredUsers.map(u => {
+            const initials = (u.full_name || u.username || '').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+            const mainRole = u.roles && u.roles.length > 0 ? u.roles[0] : '-';
+            return (
+              <div key={u.id} className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150 items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs">
+                    {initials}
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{u.full_name || u.username}</span>
+                </div>
+                <div>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{mainRole}</span>
+                </div>
+                <div className="text-gray-700 text-xs">{u.email}</div>
+                <div>
+                  <select
+                    className="border rounded px-2 py-1 text-xs"
+                    value={selectedUser === u.id ? (selectedRole ?? '') : ''}
+                    onChange={e => {
+                      setSelectedUser(u.id);
+                      setSelectedRole(Number(e.target.value) || null);
+                    }}
+                  >
+                    <option value="">Select role</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium shadow"
+                    onClick={handleAssign}
+                    type="button"
+                    disabled={assignLoading || !selectedUser || !selectedRole || selectedUser !== u.id}
+                  >
+                    {assignLoading && selectedUser === u.id ? 'Assigning...' : 'Assign'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {assignSuccess && (
+        <div className="flex items-center text-green-600 mt-2 text-sm"><CheckCircle className="mr-1 w-4 h-4" />Assigned successfully!</div>
+      )}
+    </div>
+  );
+};
+
 const AdminManagement: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -161,47 +307,15 @@ const AdminManagement: React.FC = () => {
   const fetchUsersRolesPermissions = async () => {
     try {
       const [usersRes, rolesRes, permsRes] = await Promise.all([
-        fetch('/users').then(r => r.json()),
-        fetch('/roles').then(r => r.json()),
-        fetch('/permissions').then(r => r.json()),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/users`).then(r => r.json()),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/roles`).then(r => r.json()),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/permissions`).then(r => r.json()),
       ]);
       setUsers(usersRes);
       setRoles(rolesRes);
       setPermissions(permsRes);
     } catch (err: any) {
       toast.error('Failed to fetch users/roles/permissions');
-    }
-  };
-
-  const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser || !selectedRole || selectedPermissions.length === 0) {
-      toast.error('Select user, role, and at least one permission');
-      return;
-    }
-    setAssignLoading(true);
-    try {
-      const res = await fetch('/user-role-permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: selectedUser,
-          role_id: selectedRole,
-          permission_ids: selectedPermissions,
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to assign');
-      setAssignSuccess(true);
-      setTimeout(() => setAssignSuccess(false), 2000);
-      await fetchAdminsAndMetrics();
-      setSelectedUser(null);
-      setSelectedRole(null);
-      setSelectedPermissions([]);
-      toast.success('Role and permissions assigned!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to assign');
-    } finally {
-      setAssignLoading(false);
     }
   };
 
@@ -390,7 +504,7 @@ const AdminManagement: React.FC = () => {
     // For robustness, fetch from backend
     const fetchUserRolePermissions = async () => {
       try {
-        const res = await fetch(`/user-role-permissions/${user.id}`);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user-role-permissions/${user.id}`);
         const data = await res.json();
         const perms = data
           .filter((urp: any) => urp.role_id === selectedRole && urp.permission_id)
@@ -780,354 +894,3 @@ const AdminManagement: React.FC = () => {
 };
 
 export default AdminManagement;
-
-const AssignRolesCard: React.FC = () => {
-  // Helper to get user's current role (from user object or userrolepermission)
-  const getUserRole = (u: any) => {
-    if (u.roles && u.roles.length > 0) return u.roles[0];
-    if (u.role) return u.role;
-    return '-';
-  };
-  const { user } = useAuth();
-  const [users, setUsers] = useState<any[]>([]);
-  const [roles, setRoles] = useState<any[]>([]);
-  const [permissions, setPermissions] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [selectedRole, setSelectedRole] = useState<number | null>(null);
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({ username: '', email: '', password: '', full_name: '' });
-  const [creatingUser, setCreatingUser] = useState(false);
-  const [assignLoading, setAssignLoading] = useState(false);
-  const [createUserError, setCreateUserError] = useState<string | null>(null);
-  const [assignSuccess, setAssignSuccess] = useState(false);
-  const [rolePermissions, setRolePermissions] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  const fetchAll = async () => {
-    const usersRes = await usersAPI.getAll();
-    const rolesRes = await rolesAPI.getAll();
-    setUsers(usersRes);
-    setRoles(rolesRes);
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreateUserError(null);
-    setCreatingUser(true);
-    try {
-      await authAPI.register(newUserForm);
-      setShowCreateUserModal(false);
-      setNewUserForm({ username: '', email: '', password: '', full_name: '' });
-      await fetchAll();
-      toast.success('User created!');
-    } catch (err: any) {
-      setCreateUserError('Failed to create user. ' + (err.message || ''));
-    } finally {
-      setCreatingUser(false);
-    }
-  };
-
-  const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser || !selectedRole || selectedPermissions.length === 0) {
-      toast.error('Select user, role, and at least one permission');
-      return;
-    }
-    setAssignLoading(true);
-    try {
-      const res = await fetch('/user-role-permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: selectedUser,
-          role_id: selectedRole,
-          permission_ids: selectedPermissions,
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to assign');
-      setAssignSuccess(true);
-      setTimeout(() => setAssignSuccess(false), 2000);
-      await fetchAll();
-      setSelectedUser(null);
-      setSelectedRole(null);
-      setSelectedPermissions([]);
-      toast.success('Role and permissions assigned!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to assign');
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedRole) {
-      fetch(`/roles/${selectedRole}/permissions`)
-        .then(res => res.json())
-        .then(data => setRolePermissions(data))
-        .catch(() => setRolePermissions([]));
-    } else {
-      setRolePermissions([]);
-    }
-  }, [selectedRole]);
-
-  const filteredUsers = users.filter(u => {
-    const matchesSearch =
-      u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.username?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase());
-    const mainRole = getUserRole(u);
-    const matchesRole = !filterRole || mainRole === filterRole;
-    return matchesSearch && matchesRole;
-  });
-
-  return (
-    <div className="rounded-2xl bg-white shadow-lg border border-blue-100 p-4 md:p-6 mt-6 max-w-4xl w-full mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-        <div className="flex gap-2 flex-1">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 w-full text-sm"
-            />
-          </div>
-          <select
-            className="border rounded px-3 py-2 text-sm"
-            value={filterRole}
-            onChange={e => setFilterRole(e.target.value)}
-          >
-            <option value="">All Roles</option>
-            {roles.map(r => (
-              <option key={r.id} value={r.name}>{r.name}</option>
-            ))}
-          </select>
-        </div>
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium text-sm flex items-center shadow"
-          onClick={() => setShowCreateUserModal(true)}
-        >
-          <UserPlus className="mr-1 w-4 h-4" /> Create User
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        {/* Table Header */}
-        <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
-          <div>NAME</div>
-          <div>ROLE</div>
-          <div>EMAIL</div>
-          <div>STATUS</div>
-          <div>ACTIONS</div>
-        </div>
-        {/* Table Body with scroll */}
-        <div className="divide-y divide-gray-200 max-h-80 overflow-y-auto">
-          {filteredUsers.map(u => {
-            const initials = (u.full_name || u.username || '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-            const mainRole = getUserRole(u);
-            const isSuperAdmin = mainRole === 'Super-Admin';
-            return (
-              <div key={u.id} className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
-                {/* Name */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs">
-                    {initials}
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{u.full_name || u.username}</span>
-                </div>
-                {/* Role */}
-                <div>
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    mainRole === 'Admin' ? 'bg-red-100 text-red-700' :
-                    mainRole === 'Analyst' ? 'bg-green-100 text-green-700' :
-                    mainRole === 'Manager' ? 'bg-blue-100 text-blue-700' :
-                    mainRole === 'Super-Admin' ? 'bg-purple-100 text-purple-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {mainRole}
-                  </span>
-                </div>
-                {/* Email */}
-                <div className="text-gray-700 text-xs">{u.email}</div>
-                {/* Status */}
-                <div>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
-                </div>
-                {/* Actions */}
-                <div>
-                  <button
-                    className={`bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium shadow ${isSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={() => !isSuperAdmin && setSelectedUser(u)}
-                    type="button"
-                    disabled={isSuperAdmin}
-                  >
-                    Assign
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      {/* Assign Modal */}
-      {selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">Assign Role & Permissions</h2>
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAssign} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
-                <select
-                  className="w-full border rounded px-2 py-1 text-xs"
-                  value={selectedRole ?? ''}
-                  onChange={e => setSelectedRole(Number(e.target.value) || null)}
-                >
-                  <option value="">Select role</option>
-                  {roles.map(r => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Permissions</label>
-                <div className="space-y-2 max-h-48 overflow-y-auto border rounded px-2 py-2">
-                  {rolePermissions.length === 0 && (
-                    <div className="text-gray-400 text-xs">Select a role to see permissions</div>
-                  )}
-                  {rolePermissions.map(p => (
-                    <label key={p.id} className="flex items-center gap-2 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={selectedPermissions.includes(p.id)}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setSelectedPermissions(prev => [...prev, p.id]);
-                          } else {
-                            setSelectedPermissions(prev => prev.filter(id => id !== p.id));
-                          }
-                        }}
-                      />
-                      {p.view_name}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedUser(null)}
-                  className="px-4 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs"
-                  disabled={assignLoading}
-                >
-                  {assignLoading ? 'Assigning...' : 'Assign'}
-                </button>
-              </div>
-              {assignSuccess && (
-                <div className="flex items-center text-green-600 mt-2 text-sm"><CheckCircle className="mr-1 w-4 h-4" />Assigned successfully!</div>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
-      {/* Create User Modal (unchanged) */}
-      {showCreateUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">Create New User</h2>
-              <button
-                onClick={() => setShowCreateUserModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Username</label>
-                <input
-                  type="text"
-                  required
-                  value={newUserForm.username}
-                  onChange={e => setNewUserForm({ ...newUserForm, username: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-xs"
-                  placeholder="Enter username"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={newUserForm.email}
-                  onChange={e => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-xs"
-                  placeholder="Enter email address"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={newUserForm.full_name}
-                  onChange={e => setNewUserForm({ ...newUserForm, full_name: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-xs"
-                  placeholder="Enter full name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={newUserForm.password}
-                  onChange={e => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-xs"
-                  placeholder="Enter password"
-                />
-              </div>
-              {createUserError && <div className="text-red-500 text-sm">{createUserError}</div>}
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateUserModal(false)}
-                  className="px-4 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs"
-                  disabled={creatingUser}
-                >
-                  {creatingUser ? 'Creating...' : 'Create User'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};

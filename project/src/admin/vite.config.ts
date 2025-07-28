@@ -7,4 +7,12 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    proxy: {
+      '^/roles': 'http://localhost:8000',
+      '^/permissions': 'http://localhost:8000',
+      '^/user-role-permissions': 'http://localhost:8000',
+      '^/users': 'http://localhost:8000',
+    },
+  },
 });
